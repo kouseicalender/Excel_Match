@@ -29,7 +29,7 @@ function formatValue(val, cell) {
   if (cell && cell.t === 'd' && val instanceof Date) {
     return val.toLocaleDateString('ja-JP');
   }
-  return val;
+  return (val ?? "").toString().trim();
 }
 
 function compareWorkbooks() {
@@ -80,13 +80,15 @@ function compareWorkbooks() {
         const valB = formatValue(rawB, cellB);
         const tdA = rowA.insertCell();
         const tdB = rowB.insertCell();
-        const cellId = `${sheetName}_${cellRef}`;
+        const safeSheet = sheetName.replace(/[^a-zA-Z0-9_]/g, "_");
+        const cellId = `${safeSheet}_${cellRef}`;
         tdA.id = `A_${cellId}`;
         tdB.id = `B_${cellId}`;
         tdA.title = cellRef;
         tdB.title = cellRef;
-        tdA.innerText = valA ?? "";
-        tdB.innerText = valB ?? "";
+        tdA.innerText = valA;
+        tdB.innerText = valB;
+
         if (valA !== valB) {
           tdA.classList.add("diff");
           tdB.classList.add("diff");
