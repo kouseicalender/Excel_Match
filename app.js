@@ -1,3 +1,4 @@
+// app.js
 let workbookA, workbookB;
 
 function compareFiles() {
@@ -24,6 +25,16 @@ function compareFiles() {
   readerA.readAsBinaryString(fileA);
 }
 
+function formatValue(val, cell) {
+  if (typeof val === 'number' && cell && cell.t === 'n' && cell.z && cell.z.includes('yy')) {
+    const date = XLSX.SSF.parse_date_code(val);
+    if (date) {
+      return `${date.y}/${date.m}/${date.d}`;
+    }
+  }
+  return val;
+}
+
 function compareWorkbooks() {
   const sheetNames = workbookA.SheetNames;
   const diffListDiv = document.getElementById("diffList");
@@ -41,22 +52,45 @@ function compareWorkbooks() {
     const tableB = document.createElement("table");
     const diffLinks = [];
 
+    // ヘッダー行追加
+    const headerRowA = tableA.insertRow();
+    const headerRowB = tableB.insertRow();
+    headerRowA.insertCell(); // 行番号列用
+    headerRowB.insertCell();
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const thA = headerRowA.insertCell();
+      const thB = headerRowB.insertCell();
+      const colName = XLSX.utils.encode_col(C);
+      thA.outerHTML = `<th>${colName}</th>`;
+      thB.outerHTML = `<th>${colName}</th>`;
+    }
+
     for (let R = range.s.r; R <= range.e.r; ++R) {
       const rowA = tableA.insertRow();
       const rowB = tableB.insertRow();
+      const rowNum = R + 1;
+      const thA = rowA.insertCell();
+      const thB = rowB.insertCell();
+      thA.outerHTML = `<th>${rowNum}</th>`;
+      thB.outerHTML = `<th>${rowNum}</th>`;
+
       for (let C = range.s.c; C <= range.e.c; ++C) {
         const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
         const cellA = sheetA[cellRef];
         const cellB = sheetB[cellRef];
-        const valA = (cellA && cellA.f) ? null : (cellA ? cellA.v : "");
-        const valB = (cellB && cellB.f) ? null : (cellB ? cellB.v : "");
+        const rawA = (cellA && cellA.f) ? null : (cellA ? cellA.v : "");
+        const rawB = (cellB && cellB.f) ? null : (cellB ? cellB.v : "");
+        const valA = formatValue(rawA, cellA);
+        const valB = formatValue(rawB, cellB);
         const tdA = rowA.insertCell();
         const tdB = rowB.insertCell();
-        tdA.innerText = valA ?? "";
-        tdB.innerText = valB ?? "";
         const cellId = `${sheetName}_${cellRef}`;
         tdA.id = `A_${cellId}`;
         tdB.id = `B_${cellId}`;
+        tdA.title = cellRef;
+        tdB.title = cellRef;
+        tdA.innerText = valA ?? "";
+        tdB.innerText = valB ?? "";
         if (valA !== valB) {
           tdA.classList.add("diff");
           tdB.classList.add("diff");
