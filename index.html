@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Excelファイル差分比較</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Excelファイル差分比較（並列表示 & セルジャンプ機能付き）</h2>
+  <div id="uploadArea">
+    <input type="file" id="fileA" accept=".xlsx" /> ファイルA（元）
+    <input type="file" id="fileB" accept=".xlsx" /> ファイルB（変更後）
+    <button onclick="compareFiles()">比較開始</button>
+  </div>
+  <div id="diffList"></div>
+  <div id="result"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
