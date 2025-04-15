@@ -13,12 +13,12 @@ function compareFiles() {
   const readerB = new FileReader();
 
   readerA.onload = function(e) {
-    workbookA = XLSX.read(e.target.result, { type: 'binary' });
+    workbookA = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
     readerB.readAsBinaryString(fileB);
   };
 
   readerB.onload = function(e) {
-    workbookB = XLSX.read(e.target.result, { type: 'binary' });
+    workbookB = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
     compareWorkbooks();
   };
 
@@ -26,11 +26,8 @@ function compareFiles() {
 }
 
 function formatValue(val, cell) {
-  if (typeof val === 'number' && cell && cell.t === 'n' && cell.z && cell.z.includes('yy')) {
-    const date = XLSX.SSF.parse_date_code(val);
-    if (date) {
-      return `${date.y}/${date.m}/${date.d}`;
-    }
+  if (cell && cell.t === 'd' && val instanceof Date) {
+    return val.toLocaleDateString('ja-JP');
   }
   return val;
 }
@@ -52,10 +49,9 @@ function compareWorkbooks() {
     const tableB = document.createElement("table");
     const diffLinks = [];
 
-    // ヘッダー行追加
     const headerRowA = tableA.insertRow();
     const headerRowB = tableB.insertRow();
-    headerRowA.insertCell(); // 行番号列用
+    headerRowA.insertCell();
     headerRowB.insertCell();
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const thA = headerRowA.insertCell();
@@ -105,7 +101,6 @@ function compareWorkbooks() {
       }
     }
 
-    // シート名ラベル
     const labelA = document.createElement("div");
     labelA.innerHTML = `<h3>${sheetName}（ファイルA）</h3>`;
     const labelB = document.createElement("div");
@@ -122,7 +117,6 @@ function compareWorkbooks() {
     resultDiv.appendChild(groupA);
     resultDiv.appendChild(groupB);
 
-    // 差分リンクリスト作成
     if (diffLinks.length > 0) {
       diffListDiv.innerHTML += `<h4>${sheetName} の差分</h4>
       <table>
